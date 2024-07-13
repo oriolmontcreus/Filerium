@@ -43,17 +43,24 @@ console.log("Inject script executing");
             border-radius: 5px;
             text-align: center;
         `;
+        content.onclick = (e) => e.stopPropagation();  // Prevent clicks on the content from closing the overlay
+
+        function closeOverlay() {
+            overlay.remove();
+        }
+
+        overlay.onclick = closeOverlay;
 
         const browseButton = document.createElement('button');
         browseButton.textContent = 'Browse Files';
         browseButton.onclick = () => {
             console.log("Browse Files button clicked");
-            overlay.remove();
+            closeOverlay();
             try {
-                window.fileInputInterceptorActive = false; // Disable interceptor
-                fileInput.click(); // Trigger file input
+                window.fileInputInterceptorActive = false;  // Disable interceptor
+                fileInput.click();  // Trigger file input
             } finally {
-                window.fileInputInterceptorActive = true; // Ensure the interceptor is re-enabled
+                window.fileInputInterceptorActive = true;  // Ensure the interceptor is re-enabled
             }
         };
 
@@ -70,7 +77,7 @@ console.log("Inject script executing");
                 fileInput.files = dataTransfer.files;
                 fileInput.dispatchEvent(new Event('change', { bubbles: true }));
             }
-            overlay.remove();
+            closeOverlay();
         };
 
         const imagePreview = document.createElement('img');

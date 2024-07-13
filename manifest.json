@@ -1,0 +1,50 @@
+{
+    "manifest_version": 3,
+    "name": "Filerium",
+    "version": "1",
+    "description": "-",
+    "permissions": [
+        "activeTab",
+        "clipboardRead",
+        "scripting",
+        "tabs",
+        "storage"
+    ],
+    "background": {
+        "service_worker": "dist/background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "dist/content.js"
+            ],
+            "all_frames": true,
+            "run_at": "document_start"
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "dist/inject.js",
+                "src/images/filerium-w.svg"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
+        }
+    ],
+    "icons": {
+        "48": "./src/images/filerium-w.svg",
+        "96": "./src/images/filerium-w.svg",
+        "128": "./src/images/filerium-w.svg"
+    },
+    "host_permissions": [
+        "<all_urls>"
+    ],
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'"
+    }
+}

@@ -1,0 +1,1 @@
+(()=>{"use strict";document.addEventListener("DOMContentLoaded",(function(){setTimeout((function(){const e=document.querySelector(".info-text");e instanceof HTMLElement?e.style.display="block":console.error("Could not find .info-text element or it's not an HTMLElement")}),1e3)}))})();

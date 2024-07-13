@@ -1,0 +1,1 @@
+(()=>{"use strict";({628:function(){this&&this.__awaiter,console.log("Clipboard helper script loaded")}})[628]()})();

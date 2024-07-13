@@ -1,34 +1,5 @@
 console.log("Clipboard helper script loaded");
 
-async function readClipboard() {
-    try {
-        const clipboardItems = await navigator.clipboard.read();
-        console.log('Clipboard items retrieved:', clipboardItems);
-
-        if (clipboardItems.length === 0) {
-            chrome.runtime.sendMessage({ closeTab: true });
-            return;
-        }
-
-        for (const clipboardItem of clipboardItems) {
-            console.log('Processing clipboard item:', clipboardItem);
-            for (const type of clipboardItem.types) {
-                console.log('Found type in clipboard item:', type);
-                if (type.startsWith('image/') || type === 'application/octet-stream') {
-                    await handleImageClipboardItem(clipboardItem, type);
-                    return;
-                } else if (type === 'text/plain') {
-                    await handleTextClipboardItem(clipboardItem);
-                    return;
-                }
-            }
-        }
-        chrome.runtime.sendMessage({ closeTab: true });
-    } catch (error: unknown) {
-        handleClipboardError(error);
-    }
-}
-
 async function handleImageClipboardItem(clipboardItem: ClipboardItem, type: string) {
     const blob = await clipboardItem.getType(type);
     console.log('Blob retrieved:', blob);
@@ -39,7 +10,10 @@ async function handleImageClipboardItem(clipboardItem: ClipboardItem, type: stri
         if (type === 'application/octet-stream' && blob.type === 'image/webp') {
             mimeType = 'image/webp';
         }
-        sendMessageToBackground({ fileDataUrl: reader.result as string, mimeType: mimeType });
+        sendMessageToBackground({
+            fileDataUrl: reader.result as string,
+            mimeType: mimeType
+        });
     };
     reader.onerror = (error) => {
         console.error('Error reading blob:', error);
@@ -55,7 +29,10 @@ async function handleTextClipboardItem(clipboardItem: ClipboardItem) {
     const reader = new FileReader();
     reader.onloadend = () => {
         console.log('Text converted to Data URL:', reader.result);
-        sendMessageToBackground({ fileDataUrl: reader.result as string, mimeType: 'text/plain' });
+        sendMessageToBackground({
+            fileDataUrl: reader.result as string,
+            mimeType: 'text/plain'
+        });
     };
     reader.onerror = (error) => {
         console.error('Error reading text:', error);
@@ -89,12 +66,3 @@ function handleClipboardError(error: unknown) {
         document.body.appendChild(errorMessage);
     }
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    const readClipboardButton = document.getElementById('readClipboardButton');
-    if (readClipboardButton) {
-        readClipboardButton.addEventListener('click', readClipboard);
-    } else {
-        console.error("Read clipboard button not found");
-    }
-});

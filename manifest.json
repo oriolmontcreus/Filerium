@@ -10,10 +10,6 @@
         "tabs",
         "storage"
     ],
-    "action": {
-        "default_popup": "src/modal.html",
-        "default_icon": "src/images/filerium-w.svg"
-    },
     "background": {
         "service_worker": "dist/background.js"
     },
@@ -23,8 +19,7 @@
                 "<all_urls>"
             ],
             "js": [
-                "dist/content.js",
-                "dist/inject.js"
+                "dist/content.js"
             ],
             "all_frames": true,
             "run_at": "document_start"
@@ -33,12 +28,8 @@
     "web_accessible_resources": [
         {
             "resources": [
-                "src/clipboard-helpers/clipboard-helper.html",
-                "dist/clipboard-helpers/clipboard-helper.js",
-                "dist/clipboard-helpers/clipboard-access-helper.js",
-                "src/css/styles.css",
-                "dist/modal.js",
-                "dist/inject.js"
+                "dist/inject.js",
+                "src/images/filerium-w.svg"
             ],
             "matches": [
                 "<all_urls>"

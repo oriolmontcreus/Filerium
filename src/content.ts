@@ -1,86 +1,57 @@
-(function() {
-    'use strict';
+console.log("Content script loaded");
 
-    function injectScript() {
+function injectScript() {
+    if (!document.querySelector('script[data-injected="true"]')) {
         const script = document.createElement('script');
-        try {
-            script.src = chrome.runtime.getURL('dist/inject.js');
-        } catch (error) {
-            console.log("Extension context is invalid. Please refresh the page.");
-        }
+        script.src = chrome.runtime.getURL('dist/inject.js');
+        script.setAttribute('data-injected', 'true');
+        console.log("Injecting script");
         (document.head || document.documentElement).appendChild(script);
+    } else {
+        console.log("Inject script already present");
     }
+}
 
-    function injectScriptIntoIframes() {
-        const iframes = document.querySelectorAll('iframe');
-        iframes.forEach((iframe, index) => {
-            try {
-                if (!iframe.id) {
-                    iframe.id = `injected-frame-${index}`;
-                }
-                const iframeWindow = iframe.contentWindow;
-                if (iframeWindow) {
-                    const iframeDocument = iframe.contentDocument || iframeWindow.document;
-                    if (iframeDocument) {
-                        const script = iframeDocument.createElement('script');
-                        try {
-                            script.src = chrome.runtime.getURL('dist/inject.js');
-                        } catch (error) {
-                            console.log("Extension context is invalid. Please refresh the page.");
+injectScript();
+
+async function readClipboard() {
+    console.log("Attempting to read clipboard contents");
+    try {
+        const clipboardItems = await navigator.clipboard.read();
+        for (const item of clipboardItems) {
+            if (item.types.includes('image/png')) {
+                const blob = await item.getType('image/png');
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    console.log("Clipboard data read successfully");
+                    window.postMessage({
+                        type: "CLIPBOARD_CONTENTS_RESPONSE",
+                        clipboardData: {
+                            fileDataUrl: reader.result as string,
+                            mimeType: 'image/png'
                         }
-                        iframeDocument.head.appendChild(script);
-                    }
-                }
-            } catch (e) {
-                // Silently fail for cross-origin iframes
-                console.log(`Failed to inject script into iframe ${iframe.id}: ${e}`);
+                    }, "*");
+                };
+                reader.readAsDataURL(blob);
+                return;
             }
-        });
+        }
+        console.log("No image found in clipboard");
+        window.postMessage({
+            type: "CLIPBOARD_CONTENTS_RESPONSE",
+            clipboardData: null
+        }, "*");
+    } catch (error) {
+        console.error("Error reading clipboard:", error);
+        window.postMessage({
+            type: "CLIPBOARD_CONTENTS_RESPONSE",
+            clipboardData: null
+        }, "*");
     }
+}
 
-    function setupIframeObserver() {
-        if (document.body) {
-            injectScriptIntoIframes();
-            const iframeObserver = new MutationObserver(() => {
-                injectScriptIntoIframes();
-            });
-            iframeObserver.observe(document.body, { childList: true, subtree: true });
-        } else {
-            setTimeout(setupIframeObserver, 100);
-        }
+window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'GET_CLIPBOARD_CONTENTS') {
+        readClipboard();
     }
-
-    injectScript();
-    setupIframeObserver();
-
-    window.addEventListener('message', function(event) {
-        if (event.data && event.data.type === 'REQUEST_CLIPBOARD_HELPER') {
-            chrome.runtime.sendMessage({ action: "openClipboardHelper", frameId: event.data.frameId });
-        }
-    }, false);
-
-    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-        if (request.fileDataUrl && request.mimeType) {
-            const message = {
-                type: 'CLIPBOARD_DATA',
-                clipboardData: {
-                    fileDataUrl: request.fileDataUrl,
-                    mimeType: request.mimeType
-                }
-            };
-            
-            if (request.frameId === 'top') {
-                window.postMessage(message, '*');
-            } else {
-                const targetFrame = document.getElementById(request.frameId) as HTMLIFrameElement | null;
-                if (targetFrame && targetFrame.contentWindow) {
-                    targetFrame.contentWindow.postMessage(message, '*');
-                } else {
-                    console.error(`Frame with id ${request.frameId} not found or doesn't have a content window`);
-                }
-            }
-            sendResponse({ success: true });
-        }
-        return true;
-    });
-})();
+}, false);

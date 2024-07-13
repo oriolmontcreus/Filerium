@@ -13,6 +13,10 @@
     "background": {
         "service_worker": "dist/background.js"
     },
+    "action": {
+        "default_popup": "src/modal.html",
+        "default_icon": "./src/images/filerium-w.svg"
+    },
     "content_scripts": [
         {
             "matches": [

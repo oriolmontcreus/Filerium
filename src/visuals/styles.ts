@@ -1,17 +1,20 @@
-export const buttonStyle = `
-    background: #5688C7;
+export const buttonStyle = (backgroundColor: string) => `
+    background-color: ${backgroundColor};
+    border: none;
+    border-radius: 12px;
     color: white;
     padding: 10px 20px;
-    border: 2px solid #333;
-    border-radius: 12px;
+    text-align: center;
+    text-decoration: none;
     display: inline-block;
-    transition: background-color 0.3s ease, transform 0.3s ease;
-    cursor: pointer;
+    font-size: 16px;
     margin: 4px 2px;
+    cursor: pointer;
+    transition: all 0.3s ease;
 `;
 
 export const buttonHoverStyle = `
-    background: #416ba5;
+    filter: brightness(0.8);
     transform: scale(1.05);
 `;
 
@@ -45,3 +48,5 @@ export const imagePreviewStyle = `
     border: 3px solid #333;
     border-radius: 14px;
 `;
+
+export const DEFAULT_ACTION_COLOR = '#5688C7';

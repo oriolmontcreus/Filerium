@@ -3,31 +3,17 @@ console.log("Background script loaded");
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Background received message:", request);
 
-    if (request.action === "getClipboardContents") {
-        console.log("Attempting to read from clipboard");
-        navigator.clipboard.read().then(async (clipboardItems) => {
-            for (const item of clipboardItems) {
-                if (item.types.includes('image/png')) {
-                    const blob = await item.getType('image/png');
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                        sendResponse({
-                            success: true,
-                            clipboardData: {
-                                fileDataUrl: reader.result as string,
-                                mimeType: 'image/png'
-                            }
-                        });
-                    };
-                    reader.readAsDataURL(blob);
-                    return true;
-                }
+    if (request.type === "GET_USER_COLOR") {
+        chrome.storage.sync.get(['userColor'], (result) => {
+            if (chrome.runtime.lastError) {
+                console.error("Error retrieving user color:", chrome.runtime.lastError);
+                sendResponse({ userColor: DEFAULT_ACTION_COLOR }); // Use fallback color if there’s an error
+            } else {
+                sendResponse({ userColor: result.userColor || DEFAULT_ACTION_COLOR });
             }
-            sendResponse({ success: false, error: "No image found in clipboard" });
-        }).catch((error) => {
-            console.error("Error reading clipboard:", error);
-            sendResponse({ success: false, error: error.message });
         });
-        return true;
+        return true; // Indicates we're using async response
     }
 });
+
+const DEFAULT_ACTION_COLOR = '#008CBA'; // Define the default action color used as fallback

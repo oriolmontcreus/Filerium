@@ -36,7 +36,6 @@ async function readClipboard() {
                 return;
             }
         }
-        console.log("No image found in clipboard");
         window.postMessage({
             type: "CLIPBOARD_CONTENTS_RESPONSE",
             clipboardData: null

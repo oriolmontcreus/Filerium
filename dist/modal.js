@@ -1,1 +1,1 @@
-(()=>{"use strict";console.log("modal.ts loaded")})();
+(()=>{"use strict";document.addEventListener("DOMContentLoaded",(function(){const o=document.getElementById("colorPicker"),e=document.getElementById("saveColor");function n(o){document.body.style.backgroundColor=o}o&&e?(chrome.storage.sync.get(["userColor"],(function(e){const t=e.userColor;t&&(o.value=t,n(t))})),e.addEventListener("click",(function(){const e=o.value;chrome.storage.sync.set({userColor:e},(function(){n(e)}))}))):console.error("Color picker or save button not found")}))})();

@@ -1,5 +1,5 @@
-import { browseIcon, pasteIcon } from './visuals/icons';
-import { buttonStyle, buttonHoverStyle, overlayStyle, contentStyle, imagePreviewStyle } from './visuals/styles';
+import { browseIcon, pasteIcon } from "./visuals/icons";
+import { buttonStyle, buttonHoverStyle, overlayStyle, contentStyle, imagePreviewStyle, DEFAULT_ACTION_COLOR } from "./visuals/styles";
 
 declare global {
     interface Window {
@@ -7,8 +7,56 @@ declare global {
     }
 }
 
-(function () {
-    'use strict';
+console.log("inject.js loaded");
+
+const getUserColor = (): Promise<string> => {
+    return new Promise((resolve) => {
+        if (chrome && chrome.runtime && chrome.runtime.sendMessage) {
+            chrome.runtime.sendMessage({ type: "GET_USER_COLOR" }, (response) => {
+                if (chrome.runtime.lastError) {
+                    console.error("Error retrieving user color:", chrome.runtime.lastError);
+                    resolve(DEFAULT_ACTION_COLOR); // fallback color
+                } else {
+                    resolve(response.userColor as string);
+                }
+            });
+        } else {
+            console.error("chrome.runtime.sendMessage is not available");
+            resolve(DEFAULT_ACTION_COLOR); // fallback color
+        }
+    });
+};
+
+const getClipboardContents = async (): Promise<{ success: boolean; clipboardData?: { fileDataUrl: string; mimeType: string }; message?: string }> => {
+    try {
+        const clipboardItems = await navigator.clipboard.read();
+        for (const item of clipboardItems) {
+            if (item.types.includes('image/png')) {
+                const blob = await item.getType('image/png');
+                const reader = new FileReader();
+                return new Promise((resolve) => {
+                    reader.onloadend = () => {
+                        resolve({
+                            success: true,
+                            clipboardData: {
+                                fileDataUrl: reader.result as string,
+                                mimeType: 'image/png'
+                            }
+                        });
+                    };
+                    reader.readAsDataURL(blob);
+                });
+            }
+        }
+        return { success: true, message: "No image found in clipboard" };
+    } catch (error: any) {
+        console.error("Error reading clipboard:", error);
+        return { success: false, message: error.message };
+    }
+};
+
+const initFileInputInterceptor = async () => {
+    "use strict";
 
     if (window.fileInputInterceptorActive) {
         console.log("File input interceptor already active");
@@ -20,23 +68,25 @@ declare global {
 
     let clipboardData: { fileDataUrl: string; mimeType: string } | null = null;
 
-    const createButtonWithSVG = (svg: string, onClick: () => void): HTMLButtonElement => {
-        const button = document.createElement('button');
-        button.style.cssText = buttonStyle;
+    const userColor = await getUserColor();
+
+    const createButtonWithSVG = (svg: string, onClick: () => void, color: string): HTMLButtonElement => {
+        const button = document.createElement("button");
+        button.style.cssText = buttonStyle(color);
         button.innerHTML = svg;
         button.onclick = onClick;
-        button.onmouseover = () => button.style.cssText += buttonHoverStyle;
-        button.onmouseout = () => button.style.cssText = buttonStyle;
+        button.onmouseover = () => (button.style.cssText += buttonHoverStyle);
+        button.onmouseout = () => (button.style.cssText = buttonStyle(color));
         return button;
     };
 
-    const createOverlay = (fileInput: HTMLInputElement) => {
+    const createOverlay = async (fileInput: HTMLInputElement, color: string) => {
         console.log("Creating overlay for file input:", fileInput);
 
-        const overlay = document.createElement('div');
+        const overlay = document.createElement("div");
         overlay.style.cssText = overlayStyle;
 
-        const content = document.createElement('div');
+        const content = document.createElement("div");
         content.style.cssText = contentStyle;
         content.onclick = (e) => e.stopPropagation(); // Prevent clicks on the content from closing the overlay
 
@@ -53,9 +103,9 @@ declare global {
             } finally {
                 window.fileInputInterceptorActive = true;
             }
-        });
+        }, color);
 
-        const pasteButton = createButtonWithSVG(pasteIcon, () => {
+        const pasteButton = createButtonWithSVG(pasteIcon, async () => {
             console.log("Paste Image button clicked");
             if (clipboardData) {
                 const blob = dataURItoBlob(clipboardData.fileDataUrl);
@@ -63,14 +113,15 @@ declare global {
                 const dataTransfer = new DataTransfer();
                 dataTransfer.items.add(file);
                 fileInput.files = dataTransfer.files;
-                fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+                fileInput.dispatchEvent(new Event("change", { bubbles: true }));
             }
             closeOverlay();
-        });
-        pasteButton.style.display = 'none';
+        }, color);
+        pasteButton.style.display = "none";
 
-        const imagePreview = document.createElement('img');
+        const imagePreview = document.createElement("img");
         imagePreview.style.cssText = imagePreviewStyle;
+        imagePreview.style.display = "none"; // Initially hide the image preview
 
         content.appendChild(browseButton);
         content.appendChild(pasteButton);
@@ -81,14 +132,25 @@ declare global {
 
         console.log("Overlay added to the document");
 
-        window.postMessage({ type: "GET_CLIPBOARD_CONTENTS" }, "*");
+        const clipboardResponse = await getClipboardContents();
+        if (clipboardResponse.success) {
+            //TODO: FIX THIS TYPE ASSERTATION
+            clipboardData = clipboardResponse.clipboardData as { fileDataUrl: string; mimeType: string };
+            if (clipboardData?.mimeType.startsWith("image/")) {
+                pasteButton.style.display = "inline-block";
+                imagePreview.src = clipboardData.fileDataUrl;
+                imagePreview.style.display = "block";
+            }
+        } else {
+            console.error("Failed to get clipboard contents:", clipboardResponse.message);
+        }
 
         return overlay;
     };
 
     const dataURItoBlob = (dataURI: string) => {
-        const byteString = atob(dataURI.split(',')[1]);
-        const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+        const byteString = atob(dataURI.split(",")[1]);
+        const mimeString = dataURI.split(",")[0].split(":")[1].split(";")[0];
         const ab = new ArrayBuffer(byteString.length);
         const ia = new Uint8Array(ab);
         for (let i = 0; i < byteString.length; i++) {
@@ -97,35 +159,43 @@ declare global {
         return new Blob([ab], { type: mimeString });
     };
 
-    document.addEventListener('click', (e) => {
-        if (!window.fileInputInterceptorActive) return; // Bypass the interceptor if it's disabled
+    document.addEventListener(
+        "click",
+        (e) => {
+            if (!window.fileInputInterceptorActive) return; // Bypass the interceptor if it's disabled
 
-        const target = e.target as HTMLElement;
-        if (target instanceof HTMLInputElement && target.type === 'file') {
-            console.log("File input click intercepted:", target);
-            e.preventDefault();
-            e.stopPropagation();
-            createOverlay(target);
-        }
-    }, true);
+            const target = e.target as HTMLElement;
+            if (target instanceof HTMLInputElement && target.type === "file") {
+                console.log("File input click intercepted:", target);
+                e.preventDefault();
+                e.stopPropagation();
 
-    window.addEventListener('message', (event) => {
-        if (event.data && event.data.type === 'CLIPBOARD_CONTENTS_RESPONSE') {
+                createOverlay(target, userColor);
+            }
+        },
+        true
+    );
+
+    window.addEventListener("message", (event) => {
+        if (event.data && event.data.type === "CLIPBOARD_CONTENTS_RESPONSE") {
             console.log("Received clipboard contents:", event.data.clipboardData);
             clipboardData = event.data.clipboardData;
             const overlay = document.querySelector('div[style*="position: fixed"]') as HTMLDivElement;
             if (overlay) {
-                const pasteButton = overlay.querySelector('button:nth-child(2)') as HTMLButtonElement;
-                const imagePreview = overlay.querySelector('img') as HTMLImageElement;
-                if (clipboardData?.mimeType.startsWith('image/')) {
-                    pasteButton.style.display = 'inline-block';
+                const pasteButton = overlay.querySelector("button:nth-child(2)") as HTMLButtonElement;
+                const imagePreview = overlay.querySelector("img") as HTMLImageElement;
+                if (clipboardData?.mimeType.startsWith("image/")) {
+                    pasteButton.style.display = "inline-block";
                     imagePreview.src = clipboardData.fileDataUrl;
-                    imagePreview.style.display = 'block';
+                    imagePreview.style.display = "block";
                 }
             }
         }
     });
 
     console.log("File input interceptor initialized");
-})();
+};
+
+initFileInputInterceptor().catch(console.error);
+
 export {};

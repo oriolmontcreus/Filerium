@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Filerium",
     "version": "1",
-    "description": "-",
+    "description": "Enhance your file uploads with a sleek, user-friendly menu for Chromium browsers",
     "permissions": [
         "activeTab",
         "clipboardRead",
@@ -15,7 +15,7 @@
     },
     "action": {
         "default_popup": "src/modal.html",
-        "default_icon": "./src/images/filerium-w.svg"
+        "default_icon": "./src/images/filerium-w-128.png"
     },
     "content_scripts": [
         {
@@ -33,7 +33,7 @@
         {
             "resources": [
                 "dist/inject.js",
-                "src/images/filerium-w.svg"
+                "src/images/filerium-w-128.png"
             ],
             "matches": [
                 "<all_urls>"
@@ -41,9 +41,9 @@
         }
     ],
     "icons": {
-        "48": "./src/images/filerium-w.svg",
-        "96": "./src/images/filerium-w.svg",
-        "128": "./src/images/filerium-w.svg"
+        "48": "src/images/filerium-w-48.png",
+        "96": "src/images/filerium-w-96.png",
+        "128": "src/images/filerium-w-128.png"
     },
     "host_permissions": [
         "<all_urls>"

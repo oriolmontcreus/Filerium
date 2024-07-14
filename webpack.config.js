@@ -6,8 +6,6 @@ module.exports = {
         content: './src/content.ts',
         modal: './src/modal.ts',
         inject: './src/inject.ts',
-        'clipboard-helpers/clipboard-helper': './src/clipboard-helpers/clipboard-helper.ts',
-        'clipboard-helpers/clipboard-access-helper': './src/clipboard-helpers/clipboard-access-helper.ts',
     },
     module: {
         rules: [

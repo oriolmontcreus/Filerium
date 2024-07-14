@@ -21,7 +21,50 @@ console.log("Inject script executing");
 
     function createOverlay(fileInput: HTMLInputElement) {
         console.log("Creating overlay for file input:", fileInput);
-
+    
+        const buttonStyle = `
+            background: #5688C7;
+            color: white;
+            padding: 10px 20px;
+            border: 2px solid #333;
+            border-radius: 12px;
+            display: inline-block;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            cursor: pointer;
+            margin: 4px 2px;
+        `;
+    
+        const buttonHoverStyle = `
+            background: #416ba5;
+            transform: scale(1.05);
+        `;
+    
+        const browseIcon = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-folder-search" style="vertical-align: middle;">
+                <circle cx="17" cy="17" r="3"/>
+                <path d="M10.7 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v4.1"/>
+                <path d="m21 21-1.5-1.5"/>
+            </svg>
+        `;
+    
+        const pasteIcon = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-paste" style="vertical-align: middle;">
+                <path d="M15 2H9a1 1 0 0 0-1 1v2c0 .6.4 1 1 1h6c.6 0 1-.4 1-1V3c0-.6-.4-1-1-1Z"/>
+                <path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2M16 4h2a2 2 0 0 1 2 2v2M11 14h10"/>
+                <path d="m17 10 4 4-4 4"/>
+            </svg>
+        `;
+    
+        function createButtonWithSVG(svg: string, onClick: () => void): HTMLButtonElement {
+            const button = document.createElement('button');
+            button.style.cssText = buttonStyle;
+            button.innerHTML = svg;
+            button.onclick = onClick;
+            button.onmouseover = () => button.style.cssText += buttonHoverStyle;
+            button.onmouseout = () => button.style.cssText = buttonStyle;
+            return button;
+        }
+    
         const overlay = document.createElement('div');
         overlay.style.cssText = `
             position: fixed;
@@ -34,40 +77,37 @@ console.log("Inject script executing");
             justify-content: center;
             align-items: center;
             z-index: 9999;
+            user-select: none;
         `;
-
+    
         const content = document.createElement('div');
         content.style.cssText = `
-            background: white;
+            background: #252525;
             padding: 20px;
-            border-radius: 5px;
+            border-radius: 12px;
+            border: 3px solid #333;
             text-align: center;
         `;
-        content.onclick = (e) => e.stopPropagation();  // Prevent clicks on the content from closing the overlay
-
+        content.onclick = (e) => e.stopPropagation(); // Prevent clicks on the content from closing the overlay
+    
         function closeOverlay() {
             overlay.remove();
         }
-
+    
         overlay.onclick = closeOverlay;
-
-        const browseButton = document.createElement('button');
-        browseButton.textContent = 'Browse Files';
-        browseButton.onclick = () => {
+    
+        const browseButton = createButtonWithSVG(browseIcon, () => {
             console.log("Browse Files button clicked");
             closeOverlay();
             try {
-                window.fileInputInterceptorActive = false;  // Disable interceptor
-                fileInput.click();  // Trigger file input
+                window.fileInputInterceptorActive = false; 
+                fileInput.click();
             } finally {
-                window.fileInputInterceptorActive = true;  // Ensure the interceptor is re-enabled
+                window.fileInputInterceptorActive = true;
             }
-        };
-
-        const pasteButton = document.createElement('button');
-        pasteButton.textContent = 'Paste Image';
-        pasteButton.style.display = 'none';
-        pasteButton.onclick = () => {
+        });
+    
+        const pasteButton = createButtonWithSVG(pasteIcon, () => {
             console.log("Paste Image button clicked");
             if (clipboardData) {
                 const blob = dataURItoBlob(clipboardData.fileDataUrl);
@@ -78,27 +118,30 @@ console.log("Inject script executing");
                 fileInput.dispatchEvent(new Event('change', { bubbles: true }));
             }
             closeOverlay();
-        };
-
+        });
+        pasteButton.style.display = 'none';
+    
         const imagePreview = document.createElement('img');
         imagePreview.style.cssText = `
-            max-width: 200px;
-            max-height: 200px;
+            max-width: 240px;
+            max-height: 240px;
             margin-top: 10px;
             display: none;
+            border: 3px solid #333;
+            border-radius: 14px;
         `;
-
+    
         content.appendChild(browseButton);
         content.appendChild(pasteButton);
         content.appendChild(imagePreview);
         overlay.appendChild(content);
-
+    
         document.body.appendChild(overlay);
-
+    
         console.log("Overlay added to the document");
-
+    
         window.postMessage({ type: "GET_CLIPBOARD_CONTENTS" }, "*");
-
+    
         return overlay;
     }
 

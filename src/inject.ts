@@ -7,8 +7,6 @@ declare global {
     }
 }
 
-console.log("Inject script executing");
-
 (function () {
     'use strict';
 
@@ -22,18 +20,18 @@ console.log("Inject script executing");
 
     let clipboardData: { fileDataUrl: string; mimeType: string } | null = null;
 
-    function createOverlay(fileInput: HTMLInputElement) {
-        console.log("Creating overlay for file input:", fileInput);
+    const createButtonWithSVG = (svg: string, onClick: () => void): HTMLButtonElement => {
+        const button = document.createElement('button');
+        button.style.cssText = buttonStyle;
+        button.innerHTML = svg;
+        button.onclick = onClick;
+        button.onmouseover = () => button.style.cssText += buttonHoverStyle;
+        button.onmouseout = () => button.style.cssText = buttonStyle;
+        return button;
+    };
 
-        function createButtonWithSVG(svg: string, onClick: () => void): HTMLButtonElement {
-            const button = document.createElement('button');
-            button.style.cssText = buttonStyle;
-            button.innerHTML = svg;
-            button.onclick = onClick;
-            button.onmouseover = () => button.style.cssText += buttonHoverStyle;
-            button.onmouseout = () => button.style.cssText = buttonStyle;
-            return button;
-        }
+    const createOverlay = (fileInput: HTMLInputElement) => {
+        console.log("Creating overlay for file input:", fileInput);
 
         const overlay = document.createElement('div');
         overlay.style.cssText = overlayStyle;
@@ -42,9 +40,7 @@ console.log("Inject script executing");
         content.style.cssText = contentStyle;
         content.onclick = (e) => e.stopPropagation(); // Prevent clicks on the content from closing the overlay
 
-        function closeOverlay() {
-            overlay.remove();
-        }
+        const closeOverlay = () => overlay.remove();
 
         overlay.onclick = closeOverlay;
 
@@ -88,9 +84,9 @@ console.log("Inject script executing");
         window.postMessage({ type: "GET_CLIPBOARD_CONTENTS" }, "*");
 
         return overlay;
-    }
+    };
 
-    function dataURItoBlob(dataURI: string) {
+    const dataURItoBlob = (dataURI: string) => {
         const byteString = atob(dataURI.split(',')[1]);
         const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
         const ab = new ArrayBuffer(byteString.length);
@@ -99,27 +95,21 @@ console.log("Inject script executing");
             ia[i] = byteString.charCodeAt(i);
         }
         return new Blob([ab], { type: mimeString });
-    }
+    };
 
-    document.addEventListener('click', function (e) {
-        if (!window.fileInputInterceptorActive) {
-            // Bypass the interceptor if it's disabled
-            return;
-        }
+    document.addEventListener('click', (e) => {
+        if (!window.fileInputInterceptorActive) return; // Bypass the interceptor if it's disabled
 
         const target = e.target as HTMLElement;
-        console.log("Click detected on:", target);
         if (target instanceof HTMLInputElement && target.type === 'file') {
             console.log("File input click intercepted:", target);
             e.preventDefault();
             e.stopPropagation();
             createOverlay(target);
-        } else {
-            console.log("Click detected but not on file input:", target);
         }
     }, true);
 
-    window.addEventListener('message', function (event) {
+    window.addEventListener('message', (event) => {
         if (event.data && event.data.type === 'CLIPBOARD_CONTENTS_RESPONSE') {
             console.log("Received clipboard contents:", event.data.clipboardData);
             clipboardData = event.data.clipboardData;
@@ -127,7 +117,7 @@ console.log("Inject script executing");
             if (overlay) {
                 const pasteButton = overlay.querySelector('button:nth-child(2)') as HTMLButtonElement;
                 const imagePreview = overlay.querySelector('img') as HTMLImageElement;
-                if (clipboardData && clipboardData.mimeType.startsWith('image/')) {
+                if (clipboardData?.mimeType.startsWith('image/')) {
                     pasteButton.style.display = 'inline-block';
                     imagePreview.src = clipboardData.fileDataUrl;
                     imagePreview.style.display = 'block';

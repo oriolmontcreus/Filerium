@@ -1,1 +1,1 @@
-(()=>{"use strict";document.addEventListener("DOMContentLoaded",(()=>{const e=document.getElementById("clearPreferences");e&&e.addEventListener("click",(()=>{chrome.tabs.query({active:!0,currentWindow:!0},(e=>{const t=e[0];if(t&&t.url){const e=new URL(t.url).hostname;chrome.storage.sync.get({sitePreferences:{}},(t=>{const r=t.sitePreferences;delete r[e],chrome.storage.sync.set({sitePreferences:r},(()=>{alert(`Preferences for ${e} have been cleared.`)}))}))}}))}))}))})();
+(()=>{"use strict";console.log("modal.ts loaded")})();

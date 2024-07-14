@@ -7,8 +7,7 @@
         "activeTab",
         "clipboardRead",
         "scripting",
-        "tabs",
-        "storage"
+        "tabs"
     ],
     "background": {
         "service_worker": "dist/background.js"

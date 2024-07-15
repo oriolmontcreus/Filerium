@@ -81,6 +81,15 @@ const initFileInputInterceptor = async () => {
     };
 
     const createOverlay = async (fileInput: HTMLInputElement, color: string) => {
+        const clipboardResponse = await getClipboardContents();
+        if (!clipboardResponse.success || !clipboardResponse.clipboardData) {
+            console.log("No valid image found in clipboard, proceeding with default file input action.");
+            window.fileInputInterceptorActive = false;
+            fileInput.click();
+            window.fileInputInterceptorActive = true;
+            return;
+        }
+
         console.log("Creating overlay for file input:", fileInput);
 
         const overlay = document.createElement("div");
@@ -117,11 +126,12 @@ const initFileInputInterceptor = async () => {
             }
             closeOverlay();
         }, color);
-        pasteButton.style.display = "none";
+        pasteButton.style.display = "inline-block";
 
         const imagePreview = document.createElement("img");
         imagePreview.style.cssText = imagePreviewStyle;
-        imagePreview.style.display = "none"; // Initially hide the image preview
+        imagePreview.style.display = "block";
+        imagePreview.src = clipboardResponse.clipboardData.fileDataUrl;
 
         content.appendChild(browseButton);
         content.appendChild(pasteButton);
@@ -132,20 +142,7 @@ const initFileInputInterceptor = async () => {
 
         console.log("Overlay added to the document");
 
-        const clipboardResponse = await getClipboardContents();
-        if (clipboardResponse.success) {
-            //TODO: FIX THIS TYPE ASSERTATION
-            clipboardData = clipboardResponse.clipboardData as { fileDataUrl: string; mimeType: string };
-            if (clipboardData?.mimeType.startsWith("image/")) {
-                pasteButton.style.display = "inline-block";
-                imagePreview.src = clipboardData.fileDataUrl;
-                imagePreview.style.display = "block";
-            }
-        } else {
-            console.error("Failed to get clipboard contents:", clipboardResponse.message);
-        }
-
-        return overlay;
+        clipboardData = clipboardResponse.clipboardData;
     };
 
     const dataURItoBlob = (dataURI: string) => {
@@ -169,7 +166,6 @@ const initFileInputInterceptor = async () => {
                 console.log("File input click intercepted:", target);
                 e.preventDefault();
                 e.stopPropagation();
-
                 createOverlay(target, userColor);
             }
         },

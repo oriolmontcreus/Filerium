@@ -33,20 +33,46 @@ export const overlayStyle = `
 `;
 
 export const contentStyle = `
-    background: #252525;
+    background-color: #252525;
     padding: 20px;
+    text-align: center;
+    max-width: 80%;
+    max-height: 80%;
+    overflow: auto;
     border-radius: 12px;
     border: 3px solid #333;
-    text-align: center;
+    color: #fff;
 `;
 
+//BOTH SVG AND OTHER IMAGE TYPES
+//TODO ASSIGN DIFFERENT STYLE DEPENDING ON IMAGE TYPE
 export const imagePreviewStyle = `
     max-width: 240px;
-    max-height: 240px;
-    margin-top: 10px;
+    max-height: 230px;
     display: none;
-    border: 3px solid #333;
-    border-radius: 14px;
+`;
+
+export const textPreviewStyle = `
+    max-width: 100%;
+    max-height: 230px;
+    overflow: auto;
+    border-radius: 12px;
+    color: #fff;
+    margin: 0;
+`;
+
+export const filePreviewStyle = `
+    max-width: 100%;
+    max-height: 230px;
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+    margin-top: 10px;
 `;
 
 export const DEFAULT_ACTION_COLOR = '#5688C7';

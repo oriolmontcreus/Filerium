@@ -67,3 +67,15 @@ export const filePreviewStyle = (secondaryColor: string) => `
     border-radius: 12px;
     margin-top: 10px;
 `;
+
+export const filenameInputStyle = (secondaryColor: string, primaryColor: string) => `
+    display: inline-block;
+    border-radius: 10px;
+    outline: 2px solid ${primaryColor};
+    border: 0;
+    color: #fff;
+    background-color: ${secondaryColor};
+    outline-offset: 3px;
+    padding: 10px 1rem;
+    transition: 0.25s;
+`  

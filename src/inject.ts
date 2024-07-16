@@ -3,7 +3,8 @@ import { DEFAULT_ACTION_COLOR, DEFAULT_PRIMARY_COLOR, DEFAULT_SECONDARY_COLOR } 
 import { 
     buttonStyle, buttonHoverStyle, overlayStyle, contentStyle, 
     imagePreviewStyle, 
-    filePreviewStyle 
+    filePreviewStyle,
+    filenameInputStyle
 } from "./visuals/styles";
 
 declare global {
@@ -129,7 +130,19 @@ const initFileInputInterceptor = async () => {
 
         const content = document.createElement("div");
         content.style.cssText = contentStyle(pColor);
-        overlay.onclick = content.onclick = () => overlay.remove();
+        content.onclick = (e) => e.stopPropagation();
+        overlay.onclick = () => overlay.remove();
+
+        const buttonContainer = document.createElement("div");
+        buttonContainer.style.display = "flex";
+        buttonContainer.style.gap = "8px";
+
+        const actionsContainer = document.createElement("div");
+        actionsContainer.style.display = "flex";
+        actionsContainer.style.justifyContent = "space-between";
+        actionsContainer.style.flexWrap = "wrap";
+        actionsContainer.style.alignItems = "center";
+        actionsContainer.style.gap = "8px";
 
         const handleBrowseClick = () => {
             window.fileInputInterceptorActive = false;
@@ -149,11 +162,15 @@ const initFileInputInterceptor = async () => {
                     new Blob([clipboardData.displayData!], { type: mimeType }) :
                     dataURItoBlob(clipboardData.fileDataUrl);
             
-            const file = new File([blob], `pasted_file.${getExtensionFromMimeType(mimeType)}`, { type: mimeType });
+            const defaultFilename = `pasted_file.${getExtensionFromMimeType(mimeType)}`;
+            const filename = filenameInput.value.trim() ? `${filenameInput.value.trim()}.${getExtensionFromMimeType(mimeType)}` : defaultFilename;
+
+            const file = new File([blob], filename, { type: mimeType });
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(file);
             fileInput.files = dataTransfer.files;
             fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+            overlay.remove();
         };
 
         const browseButton = createButtonWithSVG(browseIcon, handleBrowseClick, aColor);
@@ -176,8 +193,17 @@ const initFileInputInterceptor = async () => {
             previewElement.innerText = "Unsupported data type for preview";
         }
         
+        const filenameInput = document.createElement("input");
+        filenameInput.type = "text";
+        filenameInput.style.cssText = filenameInputStyle(sColor, pColor);
+        filenameInput.placeholder = "Enter filename (optional)";
+        filenameInput.onclick = (e) => e.stopPropagation();
+
+        buttonContainer.append(browseButton, pasteButton);
+        actionsContainer.append(buttonContainer, filenameInput);
+        
         previewContainer.appendChild(previewElement);
-        content.append(browseButton, pasteButton, previewContainer);
+        content.append(actionsContainer, previewContainer);
         overlay.appendChild(content);
         document.body.appendChild(overlay);
     };
@@ -224,7 +250,7 @@ const initFileInputInterceptor = async () => {
         if (!overlay) return;
 
         const pasteButton = overlay.querySelector("button:nth-child(2)") as HTMLButtonElement;
-        const previewContainer = overlay.querySelector("div:nth-child(3)") as HTMLDivElement;
+        const previewContainer = overlay.querySelector("div:nth-child(2) > div:nth-child(2)") as HTMLDivElement;
 
         pasteButton.style.display = "inline-block";
 

@@ -32,8 +32,8 @@ export const overlayStyle = `
     user-select: none;
 `;
 
-export const contentStyle = `
-    background-color: #252525;
+export const contentStyle = (primaryColor: string) => `
+    background-color: ${primaryColor};
     padding: 20px;
     text-align: center;
     max-width: 80%;
@@ -63,10 +63,10 @@ export const textPreviewStyle = `
     margin: 0;
 `;
 
-export const filePreviewStyle = `
+export const filePreviewStyle = (secondaryColor: string) => `
     max-width: 100%;
     max-height: 90vh;
-    background-color: #333;
+    background-color: ${secondaryColor};
     color: #fff;
     padding: 10px;
     overflow: auto;

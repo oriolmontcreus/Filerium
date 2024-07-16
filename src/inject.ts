@@ -16,17 +16,29 @@ const error = console.error.bind(console);
 
 log("inject.js loaded");
 
-const getUserColor = (): Promise<string> => new Promise((resolve) => {
+const getUserColors = (): Promise<{primaryColor: string, secondaryColor: string, actionColor: string}> => new Promise((resolve) => {
     if (!chrome?.runtime?.sendMessage) {
         error("chrome.runtime.sendMessage is not available");
-        return resolve(DEFAULT_ACTION_COLOR);
+        return resolve({ 
+            primaryColor: DEFAULT_ACTION_COLOR, 
+            secondaryColor: DEFAULT_ACTION_COLOR, 
+            actionColor: DEFAULT_ACTION_COLOR 
+        });
     }
-    chrome.runtime.sendMessage({ type: "GET_USER_COLOR" }, (response) => {
+    chrome.runtime.sendMessage({ type: "GET_USER_COLORS" }, (response) => {
         if (chrome.runtime.lastError) {
-            error("Error retrieving user color:", chrome.runtime.lastError);
-            return resolve(DEFAULT_ACTION_COLOR);
+            error("Error retrieving user colors:", chrome.runtime.lastError);
+            return resolve({ 
+                primaryColor: DEFAULT_ACTION_COLOR, 
+                secondaryColor: DEFAULT_ACTION_COLOR, 
+                actionColor: DEFAULT_ACTION_COLOR 
+            });
         }
-        resolve(response.userColor as string);
+        resolve({
+            primaryColor: response.primaryColor as string,
+            secondaryColor: response.secondaryColor as string,
+            actionColor: response.actionColor as string
+        });
     });
 });
 
@@ -86,7 +98,7 @@ const initFileInputInterceptor = async () => {
 
     log("Initializing file input interceptor");
 
-    const userColor = await getUserColor();
+    const { primaryColor, secondaryColor, actionColor } = await getUserColors();
     let clipboardData: any = null;
 
     const createButtonWithSVG = (svg: string, onClick: () => void, color: string) => {
@@ -99,7 +111,7 @@ const initFileInputInterceptor = async () => {
         return button;
     };
 
-    const createOverlay = async (fileInput: HTMLInputElement, color: string) => {
+    const createOverlay = async (fileInput: HTMLInputElement, pColor: string, sColor: string, aColor: string) => {
         const { success, clipboardData: retrievedData, message } = await getClipboardContents();
         if (!success || !retrievedData) {
             log(message || "No valid data found in clipboard, proceeding with default file input action.");
@@ -115,7 +127,7 @@ const initFileInputInterceptor = async () => {
         overlay.style.cssText = overlayStyle;
 
         const content = document.createElement("div");
-        content.style.cssText = contentStyle;
+        content.style.cssText = contentStyle(pColor);
         overlay.onclick = content.onclick = () => overlay.remove();
 
         const handleBrowseClick = () => {
@@ -143,16 +155,15 @@ const initFileInputInterceptor = async () => {
             fileInput.dispatchEvent(new Event("change", { bubbles: true }));
         };
 
-        const browseButton = createButtonWithSVG(browseIcon, handleBrowseClick, color);
-        const pasteButton = createButtonWithSVG(pasteIcon, handlePasteClick, color);
+        const browseButton = createButtonWithSVG(browseIcon, handleBrowseClick, aColor);
+        const pasteButton = createButtonWithSVG(pasteIcon, handlePasteClick, aColor);
 
         const previewContainer = document.createElement("div");
-        previewContainer.style.cssText = filePreviewStyle;
+        previewContainer.style.cssText = filePreviewStyle(sColor);
 
         const { mimeType, displayData, fileDataUrl } = clipboardData;
 
-        let previewElement: HTMLElement;
-
+        let previewElement;
         if (mimeType.startsWith("image/") || fileDataUrl.startsWith('data:image/'))
             previewElement = createPreviewElement("img", fileDataUrl);
         else if (mimeType === 'image/svg+xml')
@@ -198,7 +209,7 @@ const initFileInputInterceptor = async () => {
         if (target instanceof HTMLInputElement && target.type === "file") {
             e.preventDefault();
             e.stopPropagation();
-            createOverlay(target, userColor);
+            createOverlay(target, primaryColor, secondaryColor, actionColor);
         }
     }, true);
 

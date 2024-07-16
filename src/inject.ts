@@ -69,12 +69,12 @@ const getClipboardContents = async () => {
 const createPreviewElement = (tag: "img" | "div" | "pre", content: string) => {
     const el = document.createElement(tag);
     el.style.cssText = imagePreviewStyle;
-    el.style.display = "block";
     if (tag === "img") {
         (el as HTMLImageElement).src = content;
-    } else {
+        el.style.maxWidth = '100%';
+        el.style.height = 'auto';
+    } else
         el.innerHTML = content;
-    }
     return el;
 };
 

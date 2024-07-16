@@ -44,12 +44,14 @@ export const contentStyle = `
     color: #fff;
 `;
 
-//BOTH SVG AND OTHER IMAGE TYPES
-//TODO ASSIGN DIFFERENT STYLE DEPENDING ON IMAGE TYPE
 export const imagePreviewStyle = `
-    max-width: 240px;
-    max-height: 230px;
-    display: none;
+    width: 100%;
+    height: auto;
+    max-width: 70%;
+    max-height: 55vh;
+    display: block;
+    margin: auto;
+    object-fit: contain;
 `;
 
 export const textPreviewStyle = `
@@ -63,7 +65,7 @@ export const textPreviewStyle = `
 
 export const filePreviewStyle = `
     max-width: 100%;
-    max-height: 230px;
+    max-height: 90vh;
     background-color: #333;
     color: #fff;
     padding: 10px;

@@ -1,8 +1,4 @@
-const DEFAULT_ACTION_COLOR = '#008CBA';
-const DEFAULT_PRIMARY_COLOR = '#252525';
-const DEFAULT_SECONDARY_COLOR = '#333';
-
-console.log("Background script loaded");
+import { DEFAULT_PRIMARY_COLOR, DEFAULT_SECONDARY_COLOR, DEFAULT_ACTION_COLOR } from './visuals/constants';
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Background received message:", request);

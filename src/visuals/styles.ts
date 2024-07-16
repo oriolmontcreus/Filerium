@@ -54,15 +54,6 @@ export const imagePreviewStyle = `
     object-fit: contain;
 `;
 
-export const textPreviewStyle = `
-    max-width: 100%;
-    max-height: 230px;
-    overflow: auto;
-    border-radius: 12px;
-    color: #fff;
-    margin: 0;
-`;
-
 export const filePreviewStyle = (secondaryColor: string) => `
     max-width: 100%;
     max-height: 90vh;
@@ -76,5 +67,3 @@ export const filePreviewStyle = (secondaryColor: string) => `
     border-radius: 12px;
     margin-top: 10px;
 `;
-
-export const DEFAULT_ACTION_COLOR = '#5688C7';

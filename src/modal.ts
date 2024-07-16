@@ -1,13 +1,11 @@
+import { DEFAULT_PRIMARY_COLOR, DEFAULT_SECONDARY_COLOR, DEFAULT_ACTION_COLOR } from './visuals/constants';
+
 document.addEventListener('DOMContentLoaded', function () {
     const primaryColorPicker = document.getElementById('pc') as HTMLInputElement | null;
     const secondaryColorPicker = document.getElementById('sc') as HTMLInputElement | null;
     const actionColorPicker = document.getElementById('ac') as HTMLInputElement | null;
     const saveColorButton = document.getElementById('saveSettings') as HTMLButtonElement | null;
     const resetColorButton = document.getElementById('resetSettings') as HTMLButtonElement | null;
-    
-    const DEFAULT_PRIMARY_COLOR = '#252525';
-    const DEFAULT_SECONDARY_COLOR = '#333333';
-    const DEFAULT_ACTION_COLOR = '#008CBA';
 
     if (!primaryColorPicker || !secondaryColorPicker || !actionColorPicker || !saveColorButton || !resetColorButton) {
         console.error('One or more color pickers or the save/reset button not found');

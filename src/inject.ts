@@ -1,7 +1,8 @@
 import { browseIcon, pasteIcon } from "./visuals/icons";
+import { DEFAULT_ACTION_COLOR, DEFAULT_PRIMARY_COLOR, DEFAULT_SECONDARY_COLOR } from "./visuals/constants";
 import { 
     buttonStyle, buttonHoverStyle, overlayStyle, contentStyle, 
-    imagePreviewStyle, DEFAULT_ACTION_COLOR, textPreviewStyle, 
+    imagePreviewStyle, 
     filePreviewStyle 
 } from "./visuals/styles";
 
@@ -20,17 +21,17 @@ const getUserColors = (): Promise<{primaryColor: string, secondaryColor: string,
     if (!chrome?.runtime?.sendMessage) {
         error("chrome.runtime.sendMessage is not available");
         return resolve({ 
-            primaryColor: DEFAULT_ACTION_COLOR, 
+            primaryColor: DEFAULT_PRIMARY_COLOR, 
             secondaryColor: DEFAULT_ACTION_COLOR, 
-            actionColor: DEFAULT_ACTION_COLOR 
+            actionColor: DEFAULT_SECONDARY_COLOR 
         });
     }
     chrome.runtime.sendMessage({ type: "GET_USER_COLORS" }, (response) => {
         if (chrome.runtime.lastError) {
             error("Error retrieving user colors:", chrome.runtime.lastError);
             return resolve({ 
-                primaryColor: DEFAULT_ACTION_COLOR, 
-                secondaryColor: DEFAULT_ACTION_COLOR, 
+                primaryColor: DEFAULT_PRIMARY_COLOR, 
+                secondaryColor: DEFAULT_SECONDARY_COLOR, 
                 actionColor: DEFAULT_ACTION_COLOR 
             });
         }

@@ -3,7 +3,6 @@ const path = require('path');
 module.exports = {
     entry: {
         background: './src/background.ts',
-        content: './src/content.ts',
         modal: './src/modal.ts',
         inject: './src/inject.ts',
     },

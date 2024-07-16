@@ -60,7 +60,6 @@ const getClipboardContents = async () => {
             }
         }
         return { success: true, message: "No supported data found in clipboard" };
-        //TODO: FIX ERROR TYPE
     } catch (error: any) {
         error("Error reading clipboard:", error);
         return { success: false, message: error.message };
@@ -80,9 +79,8 @@ const createPreviewElement = (tag: "img" | "div" | "pre", content: string) => {
 };
 
 const initFileInputInterceptor = async () => {
-    if (window.fileInputInterceptorActive) {
+    if (window.fileInputInterceptorActive)
         return log("File input interceptor already active");
-    }
 
     window.fileInputInterceptorActive = true;
 
@@ -127,13 +125,18 @@ const initFileInputInterceptor = async () => {
         };
 
         const handlePasteClick = () => {
-            const blob = clipboardData.mimeType === 'image/svg+xml' ?
-                new Blob([clipboardData.displayData!], { type: clipboardData.mimeType }) :
-                clipboardData.mimeType.startsWith("text/") ?
-                    new Blob([clipboardData.displayData!], { type: clipboardData.mimeType }) :
+            let mimeType = clipboardData.mimeType;
+            if (clipboardData.fileDataUrl.startsWith('data:image/')) {
+                mimeType = clipboardData.fileDataUrl.match(/data:([^;,]+)/)?.[1] || mimeType;
+            }
+            
+            const blob = mimeType === 'image/svg+xml' ?
+                new Blob([clipboardData.displayData!], { type: mimeType }) :
+                mimeType.startsWith("text/") ?
+                    new Blob([clipboardData.displayData!], { type: mimeType }) :
                     dataURItoBlob(clipboardData.fileDataUrl);
-
-            const file = new File([blob], `pasted_file.${getExtensionFromMimeType(clipboardData.mimeType)}`, { type: clipboardData.mimeType });
+            
+            const file = new File([blob], `pasted_file.${getExtensionFromMimeType(mimeType)}`, { type: mimeType });
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(file);
             fileInput.files = dataTransfer.files;
@@ -150,13 +153,13 @@ const initFileInputInterceptor = async () => {
 
         let previewElement: HTMLElement;
 
-        if (mimeType.startsWith("image/") || fileDataUrl.startsWith('data:image/')) {
+        if (mimeType.startsWith("image/") || fileDataUrl.startsWith('data:image/'))
             previewElement = createPreviewElement("img", fileDataUrl);
-        } else if (mimeType === 'image/svg+xml') {
+        else if (mimeType === 'image/svg+xml')
             previewElement = createPreviewElement("div", displayData!);
-        } else if (mimeType.startsWith("text/")) {
+        else if (mimeType.startsWith("text/"))
             previewElement = createPreviewElement("pre", displayData!);
-        } else {
+        else {
             previewElement = document.createElement("div");
             previewElement.innerText = "Unsupported data type for preview";
         }
@@ -218,13 +221,13 @@ const initFileInputInterceptor = async () => {
         const fileDataUrl = clipboardData.fileDataUrl;
 
         let previewElement;
-        if (mimeType.startsWith("image/") || fileDataUrl.startsWith('data:image/')) {
+        if (mimeType.startsWith("image/") || fileDataUrl.startsWith('data:image/'))
             previewElement = createPreviewElement("img", fileDataUrl);
-        } else if (mimeType === 'image/svg+xml') {
+        else if (mimeType === 'image/svg+xml')
             previewElement = createPreviewElement("div", displayData);
-        } else if (mimeType.startsWith("text/")) {
+        else if (mimeType.startsWith("text/"))
             previewElement = createPreviewElement("pre", displayData);
-        } else {
+        else {
             previewElement = document.createElement("div");
             previewElement.innerText = "Unsupported data type for preview";
         }

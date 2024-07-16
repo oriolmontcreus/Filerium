@@ -148,6 +148,8 @@ const initFileInputInterceptor = async () => {
             window.fileInputInterceptorActive = false;
             fileInput.click();
             window.fileInputInterceptorActive = true;
+
+            fileInput.addEventListener("change", () => overlay.remove(), { once: true });
         };
 
         const handlePasteClick = () => {

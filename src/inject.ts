@@ -57,15 +57,32 @@ const getClipboardContents = async () => {
 
                 const result = await readBlob();
 
-                const clipboardData = {
-                    fileDataUrl: type.startsWith('image/svg+xml') || (type === 'text/plain' && result.startsWith('<svg')) 
-                        ? `data:image/svg+xml;base64,${btoa(result)}`
-                        : result,
-                    mimeType: type.startsWith('image/svg+xml') || (type === 'text/plain' && result.startsWith('<svg'))
-                        ? 'image/svg+xml'
-                        : type,
-                    displayData: result
-                };
+                let clipboardData;
+
+                if (type === 'text/html' && /<img\s+[^>]*src=/.test(result)) {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = result;
+
+                    const imgTag = tempDiv.querySelector('img') as HTMLImageElement;
+                    const imageUrl = imgTag ? imgTag.src : '';
+                    if (imageUrl) {
+                        clipboardData = {
+                            fileDataUrl: imageUrl,
+                            mimeType: 'image/html-contained',
+                            displayData: result
+                        };
+                    }
+                } else {
+                    clipboardData = {
+                        fileDataUrl: type.startsWith('image/svg+xml') || (type === 'text/plain' && result.startsWith('<svg')) 
+                            ? `data:image/svg+xml;base64,${btoa(result)}`
+                            : result,
+                        mimeType: type.startsWith('image/svg+xml') || (type === 'text/plain' && result.startsWith('<svg'))
+                            ? 'image/svg+xml'
+                            : type,
+                        displayData: result
+                    };
+                }
 
                 return { success: true, clipboardData };
             }
@@ -194,12 +211,12 @@ const initFileInputInterceptor = async () => {
         const { mimeType, displayData, fileDataUrl } = clipboardData;
     
         let previewElement;
-        if (mimeType.startsWith("image/") || fileDataUrl.startsWith('data:image/'))
+        if (mimeType.startsWith("image/") || mimeType === 'image/html-contained' || fileDataUrl.startsWith('data:image/'))
             previewElement = createPreviewElement("img", fileDataUrl);
         else if (mimeType === 'image/svg+xml')
-            previewElement = createPreviewElement("div", displayData!);
+            previewElement = createPreviewElement("div", displayData);
         else if (mimeType.startsWith("text/"))
-            previewElement = createPreviewElement("pre", displayData!);
+            previewElement = createPreviewElement("pre", displayData);
         else {
             previewElement = document.createElement("div");
             previewElement.innerText = "Unsupported data type for preview";

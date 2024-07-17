@@ -55,7 +55,7 @@ export const imagePreviewStyle = `
     object-fit: contain;
 `;
 
-export const filePreviewStyle = (secondaryColor: string) => `
+export const filePreviewStyle = (secondaryColor: string, justifyContent: string = "center") => `
     max-width: 100%;
     max-height: 90vh;
     background-color: ${secondaryColor};
@@ -63,7 +63,7 @@ export const filePreviewStyle = (secondaryColor: string) => `
     padding: 10px;
     overflow: auto;
     display: flex;
-    justify-content: center;
+    justify-content: ${justifyContent};
     align-items: center;
     border-radius: 12px;
     margin-top: 10px;

@@ -1,8 +1,8 @@
 import { browseIcon, pasteIcon } from "./visuals/icons";
 import { DEFAULT_ACTION_COLOR, DEFAULT_PRIMARY_COLOR, DEFAULT_SECONDARY_COLOR } from "./visuals/constants";
-import { 
-    buttonStyle, buttonHoverStyle, overlayStyle, contentStyle, 
-    imagePreviewStyle, 
+import {
+    buttonStyle, buttonHoverStyle, overlayStyle, contentStyle,
+    imagePreviewStyle,
     filePreviewStyle,
     filenameInputStyle
 } from "./visuals/styles";
@@ -16,22 +16,22 @@ declare global {
 const log = console.log.bind(console);
 const error = console.error.bind(console);
 
-const getUserColors = (): Promise<{primaryColor: string, secondaryColor: string, actionColor: string}> => new Promise((resolve) => {
+const getUserColors = (): Promise<{ primaryColor: string, secondaryColor: string, actionColor: string }> => new Promise((resolve) => {
     if (!chrome?.runtime?.sendMessage) {
         error("chrome.runtime.sendMessage is not available");
-        return resolve({ 
-            primaryColor: DEFAULT_PRIMARY_COLOR, 
-            secondaryColor: DEFAULT_ACTION_COLOR, 
-            actionColor: DEFAULT_SECONDARY_COLOR 
+        return resolve({
+            primaryColor: DEFAULT_PRIMARY_COLOR,
+            secondaryColor: DEFAULT_ACTION_COLOR,
+            actionColor: DEFAULT_SECONDARY_COLOR
         });
     }
     chrome.runtime.sendMessage({ type: "GET_USER_COLORS" }, (response) => {
         if (chrome.runtime.lastError) {
             error("Error retrieving user colors:", chrome.runtime.lastError);
-            return resolve({ 
-                primaryColor: DEFAULT_PRIMARY_COLOR, 
-                secondaryColor: DEFAULT_SECONDARY_COLOR, 
-                actionColor: DEFAULT_ACTION_COLOR 
+            return resolve({
+                primaryColor: DEFAULT_PRIMARY_COLOR,
+                secondaryColor: DEFAULT_SECONDARY_COLOR,
+                actionColor: DEFAULT_ACTION_COLOR
             });
         }
         resolve({
@@ -74,7 +74,7 @@ const getClipboardContents = async () => {
                     }
                 } else {
                     clipboardData = {
-                        fileDataUrl: type.startsWith('image/svg+xml') || (type === 'text/plain' && result.startsWith('<svg')) 
+                        fileDataUrl: type.startsWith('image/svg+xml') || (type === 'text/plain' && result.startsWith('<svg'))
                             ? `data:image/svg+xml;base64,${btoa(result)}`
                             : result,
                         mimeType: type.startsWith('image/svg+xml') || (type === 'text/plain' && result.startsWith('<svg'))
@@ -101,8 +101,11 @@ const createPreviewElement = (tag: "img" | "div" | "pre", content: string) => {
         (el as HTMLImageElement).src = content;
         el.style.maxWidth = '100%';
         el.style.height = 'auto';
-    } else
+    } else {
+        if (tag === "pre")
+            el.style.margin = "0";
         el.innerHTML = content;
+    }
     return el;
 };
 
@@ -134,19 +137,19 @@ const initFileInputInterceptor = async () => {
             window.fileInputInterceptorActive = true;
             return;
         }
-    
+
         clipboardData = retrievedData;
-    
+
         const overlay = document.createElement("div");
         overlay.style.cssText = overlayStyle + `
             opacity: 0;
             transition: opacity 0.15s ease-in-out;
         `;
-        
+
         requestAnimationFrame(() => {
             overlay.style.opacity = "1";
         });
-    
+
         const content = document.createElement("div");
         content.style.cssText = contentStyle(pColor);
         content.onclick = (e) => e.stopPropagation();
@@ -154,62 +157,63 @@ const initFileInputInterceptor = async () => {
             overlay.style.opacity = "0";
             overlay.addEventListener("transitionend", () => overlay.remove());
         };
-    
+
         const buttonContainer = document.createElement("div");
         buttonContainer.style.display = "flex";
         buttonContainer.style.gap = "8px";
-    
+
         const actionsContainer = document.createElement("div");
         actionsContainer.style.display = "flex";
         actionsContainer.style.justifyContent = "space-between";
         actionsContainer.style.flexWrap = "wrap";
         actionsContainer.style.alignItems = "center";
         actionsContainer.style.gap = "8px";
-    
+
         const handleBrowseClick = () => {
             window.fileInputInterceptorActive = false;
             fileInput.click();
             window.fileInputInterceptorActive = true;
-    
+
             fileInput.addEventListener("change", () => {
                 overlay.style.opacity = "0";
                 overlay.addEventListener("transitionend", () => overlay.remove());
             }, { once: true });
         };
-    
+
         const handlePasteClick = () => {
             let mimeType = clipboardData.mimeType;
             if (clipboardData.fileDataUrl.startsWith('data:image/')) {
                 mimeType = clipboardData.fileDataUrl.match(/data:([^;,]+)/)?.[1] || mimeType;
             }
-    
+
             const blob = mimeType === 'image/svg+xml' ?
                 new Blob([clipboardData.displayData!], { type: mimeType }) :
                 mimeType.startsWith("text/") ?
                     new Blob([clipboardData.displayData!], { type: mimeType }) :
                     dataURItoBlob(clipboardData.fileDataUrl);
-    
+
             const defaultFilename = `pasted_file.${getExtensionFromMimeType(mimeType)}`;
             const filename = filenameInput.value.trim() ? `${filenameInput.value.trim()}.${getExtensionFromMimeType(mimeType)}` : defaultFilename;
-    
+
             const file = new File([blob], filename, { type: mimeType });
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(file);
             fileInput.files = dataTransfer.files;
             fileInput.dispatchEvent(new Event("change", { bubbles: true }));
-    
+
             overlay.style.opacity = "0";
             overlay.addEventListener("transitionend", () => overlay.remove());
         };
-    
+
         const browseButton = createButtonWithSVG(browseIcon, handleBrowseClick, aColor);
         const pasteButton = createButtonWithSVG(pasteIcon, handlePasteClick, aColor);
-    
-        const previewContainer = document.createElement("div");
-        previewContainer.style.cssText = filePreviewStyle(sColor);
-    
+
         const { mimeType, displayData, fileDataUrl } = clipboardData;
-    
+        const justifyContent = mimeType.startsWith("text/") ? "flex-start" : "center";
+
+        const previewContainer = document.createElement("div");
+        previewContainer.style.cssText = filePreviewStyle(sColor, justifyContent);
+
         let previewElement;
         if (mimeType.startsWith("image/") || mimeType === 'image/html-contained' || fileDataUrl.startsWith('data:image/'))
             previewElement = createPreviewElement("img", fileDataUrl);
@@ -221,19 +225,19 @@ const initFileInputInterceptor = async () => {
             previewElement = document.createElement("div");
             previewElement.innerText = "Unsupported data type for preview";
         }
-    
+
         const filenameInput = document.createElement("input");
         filenameInput.type = "text";
         filenameInput.style.cssText = filenameInputStyle(sColor, pColor);
         filenameInput.placeholder = "Enter filename (optional)";
         filenameInput.onclick = (e) => e.stopPropagation();
-    
+
         buttonContainer.append(browseButton, pasteButton);
         actionsContainer.append(buttonContainer, filenameInput);
-    
+
         previewContainer.appendChild(previewElement);
         content.append(actionsContainer, previewContainer);
-    
+
         overlay.appendChild(content);
         document.body.appendChild(overlay);
     };
@@ -303,10 +307,8 @@ const initFileInputInterceptor = async () => {
         previewContainer.innerHTML = '';
         previewContainer.appendChild(previewElement);
     });
-
-    // log("File input interceptor initialized");
 };
 
 initFileInputInterceptor().catch(console.error);
 
-export {};
+export { };

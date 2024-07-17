@@ -30,6 +30,7 @@ export const overlayStyle = `
     align-items: center;
     z-index: 9999;
     user-select: none;
+    transition: all 0.3s ease-in-out;
 `;
 
 export const contentStyle = (primaryColor: string) => `

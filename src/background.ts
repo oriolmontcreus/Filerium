@@ -1,7 +1,6 @@
 import { DEFAULT_PRIMARY_COLOR, DEFAULT_SECONDARY_COLOR, DEFAULT_ACTION_COLOR } from './visuals/constants';
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    console.log("Background received message:", request);
 
     if (request.type === "GET_USER_COLORS") {
         chrome.storage.sync.get(['primaryColor', 'secondaryColor', 'actionColor'], (result) => {

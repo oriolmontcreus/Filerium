@@ -16,8 +16,6 @@ declare global {
 const log = console.log.bind(console);
 const error = console.error.bind(console);
 
-log("inject.js loaded");
-
 const getUserColors = (): Promise<{primaryColor: string, secondaryColor: string, actionColor: string}> => new Promise((resolve) => {
     if (!chrome?.runtime?.sendMessage) {
         error("chrome.runtime.sendMessage is not available");
@@ -47,7 +45,6 @@ const getUserColors = (): Promise<{primaryColor: string, secondaryColor: string,
 const getClipboardContents = async () => {
     try {
         const clipboardItems = await navigator.clipboard.read();
-        log("clipboardItems:", clipboardItems);
         for (const item of clipboardItems) {
             for (const type of item.types) {
                 const blob = await item.getType(type);
@@ -98,8 +95,6 @@ const initFileInputInterceptor = async () => {
 
     window.fileInputInterceptorActive = true;
 
-    log("Initializing file input interceptor");
-
     const { primaryColor, secondaryColor, actionColor } = await getUserColors();
     let clipboardData: any = null;
 
@@ -116,7 +111,7 @@ const initFileInputInterceptor = async () => {
     const createOverlay = async (fileInput: HTMLInputElement, pColor: string, sColor: string, aColor: string) => {
         const { success, clipboardData: retrievedData, message } = await getClipboardContents();
         if (!success || !retrievedData) {
-            log(message || "No valid data found in clipboard, proceeding with default file input action.");
+            // log(message || "No valid data found in clipboard, proceeding with default file input action.");
             window.fileInputInterceptorActive = false;
             fileInput.click();
             window.fileInputInterceptorActive = true;
@@ -128,7 +123,7 @@ const initFileInputInterceptor = async () => {
         const overlay = document.createElement("div");
         overlay.style.cssText = overlayStyle + `
             opacity: 0;
-            transition: opacity 0.3s ease-in-out;
+            transition: opacity 0.15s ease-in-out;
         `;
         
         requestAnimationFrame(() => {
@@ -261,7 +256,7 @@ const initFileInputInterceptor = async () => {
     window.addEventListener("message", (event) => {
         if (event.data?.type !== "CLIPBOARD_CONTENTS_RESPONSE") return;
 
-        log("Received clipboard contents:", event.data.clipboardData);
+        // log("Received clipboard contents:", event.data.clipboardData);
         clipboardData = event.data.clipboardData;
 
         const overlay = document.querySelector('div[style*="position: fixed"]') as HTMLDivElement;
@@ -292,7 +287,7 @@ const initFileInputInterceptor = async () => {
         previewContainer.appendChild(previewElement);
     });
 
-    log("File input interceptor initialized");
+    // log("File input interceptor initialized");
 };
 
 initFileInputInterceptor().catch(console.error);

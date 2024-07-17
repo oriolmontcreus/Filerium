@@ -122,67 +122,82 @@ const initFileInputInterceptor = async () => {
             window.fileInputInterceptorActive = true;
             return;
         }
-
+    
         clipboardData = retrievedData;
-
+    
         const overlay = document.createElement("div");
-        overlay.style.cssText = overlayStyle;
-
+        overlay.style.cssText = overlayStyle + `
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        `;
+        
+        requestAnimationFrame(() => {
+            overlay.style.opacity = "1";
+        });
+    
         const content = document.createElement("div");
         content.style.cssText = contentStyle(pColor);
         content.onclick = (e) => e.stopPropagation();
-        overlay.onclick = () => overlay.remove();
-
+        overlay.onclick = () => {
+            overlay.style.opacity = "0";
+            overlay.addEventListener("transitionend", () => overlay.remove());
+        };
+    
         const buttonContainer = document.createElement("div");
         buttonContainer.style.display = "flex";
         buttonContainer.style.gap = "8px";
-
+    
         const actionsContainer = document.createElement("div");
         actionsContainer.style.display = "flex";
         actionsContainer.style.justifyContent = "space-between";
         actionsContainer.style.flexWrap = "wrap";
         actionsContainer.style.alignItems = "center";
         actionsContainer.style.gap = "8px";
-
+    
         const handleBrowseClick = () => {
             window.fileInputInterceptorActive = false;
             fileInput.click();
             window.fileInputInterceptorActive = true;
-
-            fileInput.addEventListener("change", () => overlay.remove(), { once: true });
+    
+            fileInput.addEventListener("change", () => {
+                overlay.style.opacity = "0";
+                overlay.addEventListener("transitionend", () => overlay.remove());
+            }, { once: true });
         };
-
+    
         const handlePasteClick = () => {
             let mimeType = clipboardData.mimeType;
             if (clipboardData.fileDataUrl.startsWith('data:image/')) {
                 mimeType = clipboardData.fileDataUrl.match(/data:([^;,]+)/)?.[1] || mimeType;
             }
-            
+    
             const blob = mimeType === 'image/svg+xml' ?
                 new Blob([clipboardData.displayData!], { type: mimeType }) :
                 mimeType.startsWith("text/") ?
                     new Blob([clipboardData.displayData!], { type: mimeType }) :
                     dataURItoBlob(clipboardData.fileDataUrl);
-            
+    
             const defaultFilename = `pasted_file.${getExtensionFromMimeType(mimeType)}`;
             const filename = filenameInput.value.trim() ? `${filenameInput.value.trim()}.${getExtensionFromMimeType(mimeType)}` : defaultFilename;
-
+    
             const file = new File([blob], filename, { type: mimeType });
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(file);
             fileInput.files = dataTransfer.files;
             fileInput.dispatchEvent(new Event("change", { bubbles: true }));
-            overlay.remove();
+    
+            overlay.style.opacity = "0";
+            overlay.addEventListener("transitionend", () => overlay.remove());
         };
-
+    
         const browseButton = createButtonWithSVG(browseIcon, handleBrowseClick, aColor);
         const pasteButton = createButtonWithSVG(pasteIcon, handlePasteClick, aColor);
-
+    
         const previewContainer = document.createElement("div");
         previewContainer.style.cssText = filePreviewStyle(sColor);
-
+    
         const { mimeType, displayData, fileDataUrl } = clipboardData;
-
+    
         let previewElement;
         if (mimeType.startsWith("image/") || fileDataUrl.startsWith('data:image/'))
             previewElement = createPreviewElement("img", fileDataUrl);
@@ -194,18 +209,19 @@ const initFileInputInterceptor = async () => {
             previewElement = document.createElement("div");
             previewElement.innerText = "Unsupported data type for preview";
         }
-        
+    
         const filenameInput = document.createElement("input");
         filenameInput.type = "text";
         filenameInput.style.cssText = filenameInputStyle(sColor, pColor);
         filenameInput.placeholder = "Enter filename (optional)";
         filenameInput.onclick = (e) => e.stopPropagation();
-
+    
         buttonContainer.append(browseButton, pasteButton);
         actionsContainer.append(buttonContainer, filenameInput);
-        
+    
         previewContainer.appendChild(previewElement);
         content.append(actionsContainer, previewContainer);
+    
         overlay.appendChild(content);
         document.body.appendChild(overlay);
     };

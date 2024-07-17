@@ -14,7 +14,7 @@
 
 ## 🎥 Demo
 
-![Demo GIF](./READMEassets/submit-text.gif)
+![Demo GIF](./READMEassets/jack_nobg.gif)
 
 ## 🔧 Installation
 

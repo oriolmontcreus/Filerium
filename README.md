@@ -42,7 +42,7 @@ https://github.com/user-attachments/assets/e5ba93c5-9997-4ef9-aa55-3c70920a0751
 3. **Customizing Colors:**
     - Filerium allows customization for primary, secondary, and action colors either through the extension default popup or by modifying the constants in `src/visuals/constants.ts`.
 
-https://github.com/user-attachments/assets/642566a7-ab3b-45b5-b528-84a1e5bd88fd
+    https://github.com/user-attachments/assets/642566a7-ab3b-45b5-b528-84a1e5bd88fd
 
     ```typescript
     export const DEFAULT_PRIMARY_COLOR = '#252525'; //dark black

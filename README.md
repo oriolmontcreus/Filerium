@@ -15,6 +15,7 @@
 ## 🎥 Demo
 
 ![Demo GIF](./READMEassets/jack_nobg.gif)
+<video src="./README.md/jack_nobg.mp4" width="100%" height="auto" controls></video>
 
 ## 🔧 Installation
 

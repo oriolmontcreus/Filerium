@@ -4,10 +4,7 @@
     "version": "1",
     "description": "Enhance your file uploads with a sleek, user-friendly menu for Chromium browsers",
     "permissions": [
-        "activeTab",
         "clipboardRead",
-        "scripting",
-        "tabs",
         "storage"
     ],
     "background": {

@@ -28,7 +28,7 @@ export const overlayStyle = `
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 9999;
+    z-index: 999999;
     user-select: none;
     transition: all 0.3s ease-in-out;
 `;
@@ -48,10 +48,11 @@ export const contentStyle = (primaryColor: string) => `
 export const imagePreviewStyle = `
     width: 100%;
     height: auto;
-    max-width: 70%;
     max-height: 55vh;
+    text-align: left;
     display: block;
     margin: auto;
+    color: #fff;
     object-fit: contain;
 `;
 

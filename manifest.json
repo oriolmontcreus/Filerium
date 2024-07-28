@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Filerium",
-    "version": "1.1",
+    "version": "1.2",
     "description": "Enhance your file uploads with a sleek, user-friendly menu for Chromium browsers",
     "permissions": [
         "clipboardRead",

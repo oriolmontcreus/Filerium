@@ -16,6 +16,16 @@ declare global {
 const log = console.log.bind(console);
 const error = console.error.bind(console);
 
+const isExtensionEnabled = (): Promise<boolean> => new Promise((resolve) => {
+    if (!chrome?.storage?.sync?.get) {
+        console.error("chrome.storage.sync.get is not available");
+        return resolve(true); // Default to enabled if we can't check
+    }
+    chrome.storage.sync.get(['extensionEnabled'], (result) => {
+        resolve(result.extensionEnabled !== false); // Default to true if not set
+    });
+});
+
 const getUserColors = (): Promise<{ primaryColor: string, secondaryColor: string, actionColor: string }> => new Promise((resolve) => {
     if (!chrome?.runtime?.sendMessage) {
         error("chrome.runtime.sendMessage is not available");
@@ -110,6 +120,12 @@ const createPreviewElement = (tag: "img" | "div" | "pre", content: string) => {
 };
 
 const initFileInputInterceptor = async () => {
+    const enabled = await isExtensionEnabled();
+    if (!enabled) {
+        console.log("Filerium extension is disabled");
+        return;
+    }
+
     if (window.fileInputInterceptorActive)
         return log("File input interceptor already active");
 
@@ -131,7 +147,6 @@ const initFileInputInterceptor = async () => {
     const createOverlay = async (fileInput: HTMLInputElement, pColor: string, sColor: string, aColor: string) => {
         const { success, clipboardData: retrievedData, message } = await getClipboardContents();
         if (!success || !retrievedData) {
-            // log(message || "No valid data found in clipboard, proceeding with default file input action.");
             window.fileInputInterceptorActive = false;
             fileInput.click();
             window.fileInputInterceptorActive = true;
@@ -266,18 +281,25 @@ const initFileInputInterceptor = async () => {
 
     document.addEventListener("click", (e) => {
         if (!window.fileInputInterceptorActive) return;
+    
         const target = e.target as HTMLElement;
         if (target instanceof HTMLInputElement && target.type === "file") {
             e.preventDefault();
             e.stopPropagation();
-            createOverlay(target, primaryColor, secondaryColor, actionColor);
+    
+            isExtensionEnabled().then(enabled => {
+                if (enabled) {
+                    createOverlay(target, primaryColor, secondaryColor, actionColor);
+                } else {
+                    target.click();
+                }
+            });
         }
     }, true);
 
     window.addEventListener("message", (event) => {
         if (event.data?.type !== "CLIPBOARD_CONTENTS_RESPONSE") return;
 
-        // log("Received clipboard contents:", event.data.clipboardData);
         clipboardData = event.data.clipboardData;
 
         const overlay = document.querySelector('div[style*="position: fixed"]') as HTMLDivElement;

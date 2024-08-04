@@ -18,17 +18,24 @@ https://github.com/user-attachments/assets/e5ba93c5-9997-4ef9-aa55-3c70920a0751
 
 ## 🔧 Installation
 
-1. **Clone the repository:**
+1. **Chrome Web Store (Recommended):**
+   Download Filerium directly from the [Chrome Web Store](https://chromewebstore.google.com/detail/filerium/bhgabgpnibhaeoabdjoididoclnkppjk?hl=es).
 
-    ```bash
-    git clone https://github.com/oriolmontcreus/filerium.git
-    cd filerium
-    ```
+2. **Manual Installation (For developers):**
 
-2. **Load unpacked extension in Chrome:**
-    1. Navigate to `chrome://extensions/`.
-    2. Enable "Developer mode" (top-right corner).
-    3. Click "Load unpacked" and select the project directory.
+   If you prefer to install manually or want to contribute to the project, follow these steps:
+
+    1. **Clone the repository:**
+
+        ```bash
+        git clone https://github.com/oriolmontcreus/filerium.git
+        cd filerium
+        ```
+
+    2. **Load unpacked extension in Chrome:**
+        1. Navigate to `chrome://extensions/`.
+        2. Enable "Developer mode" (top-right corner).
+        3. Click "Load unpacked" and select the project directory.
 
 ## 🛠 Usage
 
